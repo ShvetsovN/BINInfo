@@ -1,4 +1,4 @@
-package com.example.bininfo.dataclass
+package com.example.bininfo.model
 
 data class Country(
     val alpha2: String,
