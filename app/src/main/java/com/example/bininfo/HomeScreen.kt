@@ -21,6 +21,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,27 +33,70 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.bininfo.dataclass.Bank
-import com.example.bininfo.dataclass.CardInfo
-import com.example.bininfo.dataclass.Country
-import com.example.bininfo.dataclass.Number
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.bininfo.model.Bank
+import com.example.bininfo.model.CardInfo
+import com.example.bininfo.model.CardNumber
+import com.example.bininfo.model.Country
+import com.example.bininfo.ui.CardInfoViewModel
 import com.example.bininfo.ui.theme.mainCardColors
 
 @Composable
-fun CheckCardField() {
+fun HomeScreen(viewModel: CardInfoViewModel = hiltViewModel()) {
+    var bin by remember { mutableStateOf("") }
+    var cardInfo by remember { mutableStateOf<CardInfo?>(null) }
+    val history by viewModel.history.observeAsState()
 
-    val cardCheckersRegex = Regex("""^\d{4} \d{2}(\d{2})?$""")
-    var textState by remember { mutableStateOf("") }
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        CheckCardField(
+            bin = bin,
+            onBinChange = { bin = it }
+        )
+
+        FieldDescription()
+
+        LookUpButton(
+            onClick = {
+                if (bin.isNotEmpty()) {
+                    viewModel.loadCard(bin) { result ->
+                        cardInfo = result
+                    }
+                }
+            }
+        )
+
+        cardInfo?.let {
+            CardInfo(it)
+        } ?: Text(text = "Введите BIN для поиска", color = Color.Gray)
+    }
+}
+
+@Composable
+fun CheckCardField(bin: String, onBinChange: (String) -> Unit) {
+    val cardCheckersRegex = Regex("""^\d{6}(\d{2})?$""")
     var errorState by remember { mutableStateOf("") }
 
+    fun formatBinInput(input: String): String {
+        val digits = input.filter { it.isDigit() }
+        return digits.chunked(4).joinToString(" ")
+    }
+
     OutlinedTextField(
-        value = textState,
+        value = bin,
         modifier = Modifier
             .fillMaxWidth(),
         onValueChange = {
-            textState = it
+            val formattedInput = formatBinInput(it)
+            onBinChange(formattedInput)
+
             errorState =
-                if (cardCheckersRegex.matches(it)) "" else "Некорректный номер"
+                if (cardCheckersRegex.matches(it.replace(" ", ""))) ""
+                else "Некорректный номер"
         },
         keyboardOptions = KeyboardOptions.Default.copy(
             keyboardType = KeyboardType.Number
@@ -75,7 +119,7 @@ fun CheckCardField() {
         trailingIcon = {
             IconButton(
                 onClick = {
-                    textState = ""
+                    onBinChange("")
                     errorState = ""
                 },
             ) {
@@ -87,13 +131,14 @@ fun CheckCardField() {
         },
         isError = errorState.isNotEmpty(),
     )
-
 }
 
 @Composable
 @Preview(showBackground = true)
 private fun CheckCardFieldPreview() {
-    CheckCardField()
+    CheckCardField("4274 2233") {
+        " "
+    }
 }
 
 @Composable
@@ -112,9 +157,9 @@ private fun FieldDescriptionPreview() {
 }
 
 @Composable
-fun LookUpButton() {
+fun LookUpButton(onClick: () -> Unit) {
     Button(
-        onClick = {},
+        onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(15.dp),
         colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
@@ -130,7 +175,7 @@ fun LookUpButton() {
 @Composable
 @Preview(showBackground = true)
 private fun LookUpButtonPreview() {
-    LookUpButton()
+    LookUpButton(){}
 }
 
 @Composable
@@ -155,87 +200,84 @@ fun CardInfo(cardInfo: CardInfo) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(text = cardInfo.country.emoji, fontSize = 24.sp)
-                Text(text = cardInfo.country.name, style = MaterialTheme.typography.bodyLarge)
             }
-            Column(
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = if (cardInfo.prepaid) "Предоплата: Да" else "Предоплата: Нет",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "Длина номера карты: ${cardInfo.number.length}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray,
-                    )
-                    Text(
-                        text = if (cardInfo.number.luhn) "Алгоритм Луна: Да" else "Алгоритм Луна: Нет",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray,
-                    )
-                }
-            }
-
-            HorizontalDivider()
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(text = "Банк: ${cardInfo.bank.name}", fontWeight = FontWeight.Medium)
-                Text(text = "Валюта: ${cardInfo.country.currency}", color = Color.Gray)
-            }
-
-            Text(text = "Город: ${cardInfo.bank.city}", fontWeight = FontWeight.Medium)
-
             Text(
-                text = "Широта: ${cardInfo.country.latitude} " +
-                        "Долгота: ${cardInfo.country.longitude}"
-            )
-            Text(
-                text = "Телефон: ${cardInfo.bank.phone}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Blue,
-            )
-            Text(
-                text = "Сайт: ${cardInfo.bank.url}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Blue,
+                text = cardInfo.country.name,
+                style = MaterialTheme.typography.bodyLarge
             )
         }
     }
+    Column(
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = if (cardInfo.prepaid) "Предоплата: Да" else "Предоплата: Нет",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray,
+        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "Длина номера карты: ${cardInfo.cardNumber.length}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray,
+            )
+            Text(
+                text = if (cardInfo.cardNumber.luhn) "Алгоритм Луна: Да" else "Алгоритм Луна: Нет",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray,
+            )
+        }
+    }
+
+    HorizontalDivider()
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(text = "Банк: ${cardInfo.bank.name}", fontWeight = FontWeight.Medium)
+        Text(text = "Валюта: ${cardInfo.country.currency}", color = Color.Gray)
+    }
+
+    Text(text = "Город: ${cardInfo.bank.city}", fontWeight = FontWeight.Medium)
+
+    Text(
+        text = "Широта: ${cardInfo.country.latitude} " +
+                "Долгота: ${cardInfo.country.longitude}"
+    )
+    Text(
+        text = "Телефон: ${cardInfo.bank.phone}",
+        style = MaterialTheme.typography.bodyMedium,
+        color = Color.Blue,
+    )
+    Text(
+        text = "Сайт: ${cardInfo.bank.url}",
+        style = MaterialTheme.typography.bodyMedium,
+        color = Color.Blue,
+    )
 }
 
 @Composable
 @Preview(showBackground = true)
-fun CardInfoPreview() {
-    val sampleCardInfo = CardInfo(
-        brand = "Visa/Dankort",
-        type = "debit",
-        scheme = "visa",
+private fun CardInfoPreview(){
+    CardInfo(
+        bank = Bank("Hjorring", "Jyske Bank", "+4589893300", "www.jyskebank.dk"),
+        brand = "Visa",
         country = Country(
-            name = "Denmark", emoji = "🇩🇰",
-            alpha2 = "DK",
-            latitude = 56,
-            longitude = 10,
-            numeric = "208",
-            currency = "DKK",
+            "DK",
+            "DKK",
+            "dk",
+            56,
+            10,
+            "Denmark",
+            "208"
         ),
-        bank = Bank(
-            name = "Jyske Bank",
-            url = "www.jyskebank.dk",
-            phone = "+4589893300",
-            city = "Hjørring"
-        ),
-        number = Number(16, true),
-        prepaid = true
+        cardNumber = CardNumber(16, true),
+        prepaid = false,
+        scheme = "visa",
+        type = "debit"
     )
-
-    CardInfo(cardInfo = sampleCardInfo)
 }
