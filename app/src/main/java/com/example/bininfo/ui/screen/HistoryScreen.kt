@@ -101,14 +101,14 @@ fun BinHistory(item: BinHistory) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(text = item.country.name, style = MaterialTheme.typography.bodyLarge)
-                Text(text = item.country.emoji, fontSize = 24.sp)
+                item.country?.name?.let { Text(text = it, style = MaterialTheme.typography.bodyLarge) }
+                item.country?.emoji?.let { Text(text = it, fontSize = 24.sp) }
             }
             Column(
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(
-                    text = if (item.prepaid) "Предоплата: Да" else "Предоплата: Нет",
+                    text = if (item.prepaid == true) "Предоплата: Да" else "Предоплата: Нет",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray,
                 )
@@ -117,12 +117,12 @@ fun BinHistory(item: BinHistory) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Длина номера карты: ${item.number.length}",
+                        text = "Длина номера карты: ${item.number?.length}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray,
                     )
                     Text(
-                        text = if (item.number.luhn) "Алгоритм Луна: Да" else "Алгоритм Луна: Нет",
+                        text = if (item.number?.luhn == true) "Алгоритм Луна: Да" else "Алгоритм Луна: Нет",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray,
                     )
@@ -135,22 +135,22 @@ fun BinHistory(item: BinHistory) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(text = "Банк: ${item.bank.name}", fontWeight = FontWeight.Medium)
-                Text(text = "Валюта: ${item.country.currency}", color = Color.Gray)
+                Text(text = "Банк: ${item.bank?.name}", fontWeight = FontWeight.Medium)
+                Text(text = "Валюта: ${item.country?.currency}", color = Color.Gray)
             }
 
-            Text(text = "Город: ${item.bank.city}", fontWeight = FontWeight.Medium)
+            Text(text = "Город: ${item.bank?.city}", fontWeight = FontWeight.Medium)
 
             Text(
-                text = "Широта: ${item.country.latitude} Долгота: ${item.country.longitude}"
+                text = "Широта: ${item.country?.latitude} Долгота: ${item.country?.longitude}"
             )
             Text(
-                text = "Телефон: ${item.bank.phone}",
+                text = "Телефон: ${item.bank?.phone}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Blue,
             )
             Text(
-                text = "Сайт: ${item.bank.url}",
+                text = "Сайт: ${item.bank?.url}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Blue,
             )

@@ -11,5 +11,5 @@ interface BinApiService {
     suspend fun getBinInfo(
         @Path("bin") bin: String,
         @Header("Accept-Version") version: String = "3"
-    ): Response<BinInfo>
+        ): Response<BinInfo>
 }

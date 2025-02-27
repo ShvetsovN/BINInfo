@@ -1,5 +1,6 @@
 package com.example.bininfo.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bininfo.data.BinRepository
@@ -30,6 +31,9 @@ open class BinViewModel @Inject constructor(
     }
 
     fun getBinInfo(bin: String) {
+        if(bin.length !in 6..8 || bin.any{ !it.isDigit()}) {
+            Log.e("BinViewModel", "Ошибка: BIN должен содержать от 6 до 8 цифр")
+        }
         viewModelScope.launch {
             val result = binRepository.getBinInfo(bin)
             result?.let {

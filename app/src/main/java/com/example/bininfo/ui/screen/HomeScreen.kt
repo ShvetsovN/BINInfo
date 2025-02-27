@@ -1,5 +1,6 @@
 package com.example.bininfo.ui.screen
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,7 +25,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -43,16 +42,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.bininfo.model.Bank
 import com.example.bininfo.model.BinInfo
-import com.example.bininfo.model.Country
-import com.example.bininfo.model.Number
 import com.example.bininfo.ui.BinViewModel
-import com.example.bininfo.ui.theme.BINInfoTheme
 import com.example.bininfo.ui.theme.mainCardColors
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 fun HomeScreen(
@@ -84,7 +76,9 @@ fun HomeScreen(
                 value = bin,
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "BIN/IIN card") },
-                onValueChange = { newBin -> bin = formatBinInput(newBin) },
+                onValueChange = {newBin ->
+                        bin = formatBinInput(newBin)
+                },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Number
                 ),
@@ -109,13 +103,13 @@ fun HomeScreen(
                 text = "Enter the first 6 to 8 digits of a card number (BIN/IIN)",
                 fontSize = 16.sp,
                 color = Color.Gray
-                )
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = { viewModel.getBinInfo(bin) },
-                enabled = bin.length in 7..9,
+                onClick = { viewModel.getBinInfo(bin.replace(" ", "")) },
+                enabled = bin.replace(" ", "").length in listOf(6,8),
                 colors = ButtonDefaults.buttonColors(Color.Blue)
             ) {
                 Text("LookUp")
@@ -125,19 +119,27 @@ fun HomeScreen(
 
             binState?.let { item ->
                 BinInfo(item)
-            }
+                Log.e("HomesScreen", "Получены данные: $binState")
+            } ?: Text("No data available", color = Color.Gray)
         }
     }
 }
 
+private fun formatBinInput(input: String): String{
+    return input.filter { it.isDigit() }
+        .take(8)
+        .chunked(4)
+        .joinToString(" ")
+}
+
 @Composable
 @Preview(showBackground = true)
-private fun TextFieldPreview(){
+private fun TextFieldPreview() {
     OutlinedTextField(
         value = "4444 0000",
         modifier = Modifier.fillMaxWidth(),
         label = { Text(text = "BIN/IIN card") },
-        onValueChange = {  },
+        onValueChange = { },
         keyboardOptions = KeyboardOptions.Default.copy(
             keyboardType = KeyboardType.Number
         ),
@@ -158,7 +160,7 @@ private fun TextFieldPreview(){
 
 @Composable
 @Preview(showBackground = true)
-private fun DescriptionPreview(){
+private fun DescriptionPreview() {
     Text(
         text = "Enter the first 6 to 8 digits of a card number (BIN/IIN)",
         fontSize = 16.sp,
@@ -168,21 +170,13 @@ private fun DescriptionPreview(){
 
 @Composable
 @Preview(showBackground = true)
-private fun ButtonPreview(){
+private fun ButtonPreview() {
     Button(
-        onClick = {  },
+        onClick = { },
         colors = ButtonDefaults.buttonColors(Color.Blue)
     ) {
         Text(text = "LookUp", fontSize = 20.sp)
     }
-}
-
-private fun formatBinInput(input: String): String {
-    return input
-        .replace(" ", "")
-        .take(8)
-        .chunked(4)
-        .joinToString(" ")
 }
 
 @Composable
@@ -208,14 +202,14 @@ fun BinInfo(binInfo: BinInfo) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(text = binInfo.country.name, style = MaterialTheme.typography.bodyLarge)
-                Text(text = binInfo.country.emoji, fontSize = 24.sp)
+                binInfo.country?.name?.let { Text(text = it, style = MaterialTheme.typography.bodyLarge) }
+                binInfo.country?.emoji?.let { Text(text = it, fontSize = 24.sp) }
             }
             Column(
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text(
-                    text = if (binInfo.prepaid) "Предоплата: Да" else "Предоплата: Нет",
+                    text = if (binInfo.prepaid == true) "Предоплата: Да" else "Предоплата: Нет",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray,
                 )
@@ -224,12 +218,12 @@ fun BinInfo(binInfo: BinInfo) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Длина номера карты: ${binInfo.number.length}",
+                        text = "Длина номера карты: ${binInfo.number?.length}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray,
                     )
                     Text(
-                        text = if (binInfo.number.luhn) "Алгоритм Луна: Да" else "Алгоритм Луна: Нет",
+                        text = if (binInfo.number?.luhn == true) "Алгоритм Луна: Да" else "Алгоритм Луна: Нет",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray,
                     )
@@ -242,22 +236,22 @@ fun BinInfo(binInfo: BinInfo) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(text = "Банк: ${binInfo.bank.name}", fontWeight = FontWeight.Medium)
-                Text(text = "Валюта: ${binInfo.country.currency}", color = Color.Gray)
+                Text(text = "Банк: ${binInfo.bank?.name}", fontWeight = FontWeight.Medium)
+                Text(text = "Валюта: ${binInfo.country?.currency}", color = Color.Gray)
             }
 
-            Text(text = "Город: ${binInfo.bank.city}", fontWeight = FontWeight.Medium)
+            Text(text = "Город: ${binInfo.bank?.city}", fontWeight = FontWeight.Medium)
 
             Text(
-                text = "Широта: ${binInfo.country.latitude} Долгота: ${binInfo.country.longitude}"
+                text = "Широта: ${binInfo.country?.latitude} Долгота: ${binInfo.country?.longitude}"
             )
             Text(
-                text = "Телефон: ${binInfo.bank.phone}",
+                text = "Телефон: ${binInfo.bank?.phone}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Blue,
             )
             Text(
-                text = "Сайт: ${binInfo.bank.url}",
+                text = "Сайт: ${binInfo.bank?.url}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Blue,
             )

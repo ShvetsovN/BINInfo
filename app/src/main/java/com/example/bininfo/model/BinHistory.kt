@@ -7,11 +7,11 @@ import androidx.room.PrimaryKey
 data class BinHistory(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val bin: String,
-    val bank: Bank,
-    val brand: String,
-    val country: Country,
-    val number: Number,
-    val prepaid: Boolean,
-    val scheme: String,
-    val type: String
+    val bank: Bank? = null,
+    val brand: String? = "",
+    val country: Country? = null,
+    val number: Number? = null,
+    val prepaid: Boolean? = false,
+    val scheme: String? = "",
+    val type: String? = ""
 )
