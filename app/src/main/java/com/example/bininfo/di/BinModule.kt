@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.room.Room
 import com.example.bininfo.Constants
 import com.example.bininfo.data.AppDatabase
-import com.example.bininfo.data.CardInfoApiService
-import com.example.bininfo.data.CardInfoDao
+import com.example.bininfo.data.BinApiService
+import com.example.bininfo.data.BinDao
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -21,7 +21,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class CardInfoModule {
+class BinModule {
 
     @Provides
     @Singleton
@@ -34,7 +34,7 @@ class CardInfoModule {
 
     @Provides
     @Singleton
-    fun provideCardInfoDao(appDatabase: AppDatabase) : CardInfoDao = appDatabase.cardInfoDao()
+    fun provideBinDao(appDatabase: AppDatabase): BinDao = appDatabase.binDao()
 
     @Provides
     @Singleton
@@ -60,7 +60,7 @@ class CardInfoModule {
 
     @Provides
     @Singleton
-    fun provideCardInfoApiService(retrofit: Retrofit): CardInfoApiService {
-        return retrofit.create(CardInfoApiService::class.java)
+    fun provideBinApiService(retrofit: Retrofit): BinApiService {
+        return retrofit.create(BinApiService::class.java)
     }
 }

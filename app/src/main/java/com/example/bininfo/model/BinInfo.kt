@@ -1,12 +1,9 @@
 package com.example.bininfo.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
-@Entity(tableName = "bin_history")
-data class BinHistory(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val bin: String,
+@Serializable
+data class BinInfo(
     val bank: Bank,
     val brand: String,
     val country: Country,

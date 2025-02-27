@@ -2,8 +2,8 @@ package com.example.bininfo.data
 
 import androidx.room.TypeConverter
 import com.example.bininfo.model.Bank
-import com.example.bininfo.model.CardNumber
 import com.example.bininfo.model.Country
+import com.example.bininfo.model.Number
 import kotlinx.serialization.json.Json
 
 class Converters {
@@ -30,12 +30,12 @@ class Converters {
     }
 
     @TypeConverter
-    fun fromCardNumber(cardNumber: CardNumber): String {
-        return json.encodeToString(cardNumber)
+    fun fromNumber(number: Number): String {
+        return json.encodeToString(number)
     }
 
     @TypeConverter
-    fun toCardNumber(value: String): CardNumber {
+    fun toNumber(value: String): Number {
         return json.decodeFromString(value)
     }
 }
