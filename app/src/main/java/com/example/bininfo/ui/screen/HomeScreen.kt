@@ -13,12 +13,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,12 +53,20 @@ fun HomeScreen(
     val binState by viewModel.binInfo.collectAsState()
 
     Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate("historyScreen") },
-                modifier = Modifier.padding(16.dp)
+        bottomBar = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.End
             ) {
-                Icon(Icons.Default.List, contentDescription = "History")
+                Button(
+                    onClick = { navController.navigate("historyScreen") },
+                    modifier = Modifier
+                        .padding(16.dp)
+                ) {
+                    Text(text = "BIN History")
+                }
             }
         }
     ) {
@@ -76,8 +82,8 @@ fun HomeScreen(
                 value = bin,
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "BIN/IIN card") },
-                onValueChange = {newBin ->
-                        bin = formatBinInput(newBin)
+                onValueChange = { newBin ->
+                    bin = formatBinInput(newBin)
                 },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Number
@@ -109,8 +115,10 @@ fun HomeScreen(
 
             Button(
                 onClick = { viewModel.getBinInfo(bin.replace(" ", "")) },
-                enabled = bin.replace(" ", "").length in listOf(6,8),
-                colors = ButtonDefaults.buttonColors(Color.Blue)
+                enabled = bin.replace(" ", "").length in listOf(6, 8),
+                colors = ButtonDefaults.buttonColors(Color.Blue),
+                modifier = Modifier
+                    .fillMaxWidth()
             ) {
                 Text("LookUp")
             }
@@ -125,7 +133,7 @@ fun HomeScreen(
     }
 }
 
-private fun formatBinInput(input: String): String{
+private fun formatBinInput(input: String): String {
     return input.filter { it.isDigit() }
         .take(8)
         .chunked(4)
@@ -202,7 +210,12 @@ fun BinInfo(binInfo: BinInfo) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                binInfo.country?.name?.let { Text(text = it, style = MaterialTheme.typography.bodyLarge) }
+                binInfo.country?.name?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
                 binInfo.country?.emoji?.let { Text(text = it, fontSize = 24.sp) }
             }
             Column(

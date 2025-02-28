@@ -101,7 +101,12 @@ fun BinHistory(item: BinHistory) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                item.country?.name?.let { Text(text = it, style = MaterialTheme.typography.bodyLarge) }
+                item.country?.name?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
                 item.country?.emoji?.let { Text(text = it, fontSize = 24.sp) }
             }
             Column(
